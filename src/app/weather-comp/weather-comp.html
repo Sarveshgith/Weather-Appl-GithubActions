@@ -1,0 +1,108 @@
+<div class="max-w-4xl mx-auto p-4 sm:p-6 font-sans">
+  <!-- Header / Action Panel -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 pb-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900">Weather Forecast</h1>
+      <p class="text-sm text-gray-500 mt-1">Real-time weather condition updates</p>
+    </div>
+    
+    <div class="flex items-center gap-4">
+      <button 
+        (click)="refresh()" 
+        [disabled]="isLoading()"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-xs hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer">
+        <svg 
+          [class.animate-spin]="isLoading()"
+          class="w-4 h-4 text-gray-500" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12" />
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading() && forecasts().length === 0" class="flex flex-col items-center justify-center py-12">
+    <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    <span class="mt-4 text-sm font-medium text-gray-600">Loading forecast data...</span>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage()" class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 h-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="ml-3 flex-1 md:flex md:justify-between">
+        <p class="text-sm text-red-700">{{ errorMessage() }}</p>
+        <p class="mt-3 text-sm md:mt-0 md:ml-6">
+          <button (click)="refresh()" class="whitespace-nowrap font-medium text-red-700 hover:text-red-600 underline cursor-pointer">
+            Retry
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Display -->
+  <div *ngIf="!isLoading() || forecasts().length > 0">
+    <div *ngIf="forecasts().length > 0" class="space-y-4">
+      
+      <!-- Stats / Summary Info -->
+      <div class="flex items-center justify-between text-xs sm:text-sm text-gray-500 px-1">
+        <span>Total Forecast Records: <strong class="text-gray-900 font-semibold">{{ forecasts().length }}</strong></span>
+        <span *ngIf="isLoading()" class="text-blue-600 animate-pulse">Updating...</span>
+      </div>
+
+      <!-- Responsive Table Container -->
+      <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-xs">
+        <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3.5 font-semibold text-gray-950">Date</th>
+              <th scope="col" class="px-6 py-3.5 font-semibold text-gray-950">Temp (&deg;C)</th>
+              <th scope="col" class="px-6 py-3.5 font-semibold text-gray-950">Temp (&deg;F)</th>
+              <th scope="col" class="px-6 py-3.5 font-semibold text-gray-950">Summary</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <tr 
+              *ngFor="let item of forecasts()"
+              [class.bg-red-50]="item.temperatureC > 30"
+              [class.text-red-950]="item.temperatureC > 30"
+              class="hover:bg-gray-50/50 transition-colors">
+              <td class="whitespace-nowrap px-6 py-4 font-medium">{{ item.date | date:'mediumDate' }}</td>
+              <td class="whitespace-nowrap px-6 py-4">
+                <span class="flex items-center gap-1.5">
+                  {{ item.temperatureC }}
+                  <span *ngIf="item.temperatureC > 30" class="inline-flex items-center rounded-full bg-red-100 px-1.5 py-0.5 text-2xs font-medium text-red-700">Hot</span>
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-6 py-4">{{ item.temperatureF }}</td>
+              <td class="px-6 py-4 text-gray-500">{{ item.summary || 'N/A' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="forecasts().length === 0 && !isLoading() && !errorMessage()" class="text-center py-12 border border-dashed border-gray-300 rounded-lg">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">No forecasts</h3>
+      <p class="mt-1 text-sm text-gray-500">No weather forecast data could be loaded.</p>
+      <div class="mt-6">
+        <button (click)="refresh()" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-xs text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">
+          Fetch Data
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
